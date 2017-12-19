@@ -3,3 +3,7 @@ Before() do
   #pievieno vērtības test userim
   @test_user = User.new('reinistdl@gmail.com', 'Parole123')
 end
+
+After() do
+  puts "This happends after a test"
+end
