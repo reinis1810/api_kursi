@@ -3,7 +3,7 @@ When(/^I try to make a new project$/) do
 end
 
 Then(/^I check if the project is made$/) do
-  pending
+  check_if_project_created
 end
 
 

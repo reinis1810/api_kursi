@@ -1,10 +1,13 @@
 require 'rest-client'
 require 'test-unit' #vajag priekš assert_equal
 
-def create_project
-  randomnr = 1 + rand(1000)
+String dev_env_id = ''
+String prod_env_id = ''
 
-  project_payload = {:name => 'Test' + randomnr.to_s,
+def create_project
+  randomnr =  Time.now.to_s
+
+  project_payload = {:name => 'Test' + randomnr,
                      :type => 'basic'}.to_json
 
   response = post("https://www.apimation.com/projects",
@@ -16,9 +19,9 @@ def create_project
 
   response_hash = JSON.parse(response)
 
-  assert_equal(name, response_hash['name'], 'Project name is not correct')
+  assert_equal('Test' + randomnr, response_hash['name'], 'Project name is not correct')
 
-  assert_equal(type, response_hash['type'], 'Project type is not correct')
+  assert_equal('basic', response_hash['type'], 'Project type is not correct')
 end
 
 def check_if_project_created
@@ -27,9 +30,9 @@ end
 
 
 def create_prod_env
-  randomnr = 1 + rand(1000)
+  randomnr =  Time.now.to_s
 
-  project_payload = {:name => 'Prod' + randomnr.to_s}.to_json
+  project_payload = {:name => 'Prod' + randomnr}.to_json
 
   response = post("https://www.apimation.com/environments",
                   headers: {'Content-Type' => 'application/json'},
@@ -40,7 +43,9 @@ def create_prod_env
 
   response_hash = JSON.parse(response)
 
-  assert_equal(name, response_hash['name'], 'Prod environment name is not correct')
+  assert_equal('Prod' + randomnr, response_hash['name'], 'Prod environment name is not correct')
+
+  prod_env_id = response_hash['id']
 end
 
 def check_prod_env
@@ -50,9 +55,9 @@ end
 
 
 def create_dev_env
-  randomnr = 1 + rand(1000)
+  randomnr = Time.now.to_s
 
-  project_payload = {:name => 'Dev' + randomnr.to_s}.to_json
+  project_payload = {:name => 'Dev' + randomnr}.to_json
 
   response = post("https://www.apimation.com/environments",
                   headers: {'Content-Type' => 'application/json'},
@@ -63,7 +68,9 @@ def create_dev_env
 
   response_hash = JSON.parse(response)
 
-  assert_equal(name, response_hash['name'], 'Dev environment name is not correct')
+  assert_equal('Dev' + randomnr, response_hash['name'], 'Dev environment name is not correct')
+
+  dev_env_id = response_hash['id']
 end
 
 def check_dev_env
@@ -72,11 +79,11 @@ end
 
 
 def add_global1
-  randomnr = 1 + rand(1000)
+  randomnr = Time.now.to_s
 
-  project_payload = {:key => "$global" + randomnr, :value => "global1" + randomnr}.to_json
+  project_payload = {:key => '$global1' + randomnr, :value => 'global1' + randomnr}.to_json
 
-  response = put("https://www.apimation.com/environments/0ede8100-e4eb-11e7-8bcd-5d3e2d5d7554",
+  response = put("https://www.apimation.com/environments/" + prod_env_id,
                   headers: {'Content-Type' => 'application/json'},
                   cookies: @test_user.session_cookie,
                   payload: project_payload)
@@ -85,15 +92,16 @@ def add_global1
 
   response_hash = JSON.parse(response)
 
-  assert_equal(key, response_hash['key'], 'Key for first global value is not correct')
+  assert_equal('$global1' + randomnr, response_hash['key'], 'Key for first global value is not correct')
+  assert_equal('global1' + randomnr, response_hash['value'], 'Value for first global value is not correct')
 end
 
 def add_global2
-  randomnr = 1 + rand(1000)
+  randomnr = Time.now.to_s
 
-  project_payload = {:key => "$global" + randomnr, :value => "global1" + randomnr}.to_json
+  project_payload = {:key => '$global2' + randomnr, :value => 'global2' + randomnr}.to_json
 
-  response = put("https://www.apimation.com/environments/0ede8100-e4eb-11e7-8bcd-5d3e2d5d7554",
+  response = put("https://www.apimation.com/environments/" + dev_env_id,
                  headers: {'Content-Type' => 'application/json'},
                  cookies: @test_user.session_cookie,
                  payload: project_payload)
@@ -102,5 +110,6 @@ def add_global2
 
   response_hash = JSON.parse(response)
 
-  assert_equal(key, response_hash['key'], 'Key for second global value is not correct')
+  assert_equal('$global2' + randomnr, response_hash['key'], 'Key for second global value is not correct')
+  assert_equal('global2' + randomnr, response_hash['value'], 'Value for second global value is not correct')
 end
